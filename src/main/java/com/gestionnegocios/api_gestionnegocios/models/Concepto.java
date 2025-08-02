@@ -1,13 +1,13 @@
-
 package com.gestionnegocios.api_gestionnegocios.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
 import lombok.*;
 
 /**
- * Concepto de un movimiento (ej: ALIMENTOS, INTERNET).
+ * Concepto de un tipo de movimiento (ej: ALIMENTOS, INTERNET).
  */
 @Entity
 @Table(name = "conceptos")
@@ -37,6 +37,6 @@ public class Concepto {
     private String nombre;
 
     @Size(max = 255)
-    @Column(length = 255)
+    @Column(length = 255, nullable = false)
     private String descripcion;
 }

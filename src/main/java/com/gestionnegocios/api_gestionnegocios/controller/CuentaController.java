@@ -16,6 +16,11 @@ import java.util.List;
 public class CuentaController {
     private final CuentaService cuentaService;
 
+    /**
+     * Obtiene todas las cuentas del CEO autenticado.
+     * 
+     * @return Lista de cuentas del CEO.
+     */
     @PreAuthorize("hasRole('CEO')")
     @GetMapping
     public List<CuentaResponseDTO> getAll() {

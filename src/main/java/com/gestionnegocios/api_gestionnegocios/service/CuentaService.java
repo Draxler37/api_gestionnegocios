@@ -18,6 +18,11 @@ public class CuentaService {
     private final CuentaRepository cuentaRepository;
     private final CuentaMapper cuentaMapper;
 
+    /** 
+     * Obtiene las cuentas del CEO autenticado.
+     * 
+     * @return Lista de cuentas del CEO.
+     */
     public List<CuentaResponseDTO> getAll() {
         return cuentaRepository.findAll().stream()
                 .map(cuentaMapper::toResponseDTO)

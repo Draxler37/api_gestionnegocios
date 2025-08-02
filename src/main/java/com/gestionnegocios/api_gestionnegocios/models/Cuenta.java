@@ -48,12 +48,16 @@ public class Cuenta {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance;
 
-    @Column(name = "fecha_creacion", updatable = false)
+    @Column(name = "fecha_creacion", updatable = false, nullable = false)
     private LocalDateTime fechaCreacion;
 
     @Size(max = 255)
-    @Column(length = 255)
+    @Column(length = 255, nullable = false)
     private String descripcion;
+
+    @Size(max = 100)
+    @Column(name = "numero_cuenta", length = 100, nullable = false)
+    private String numeroCuenta;
 
     @Builder.Default
     @JsonIgnore

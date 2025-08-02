@@ -26,4 +26,8 @@ public class CuentaRequestDTO {
     @NotNull(message = "La descripción es obligatoria")
     @Size(max = 255)
     private String descripcion;
+
+    @NotNull(message = "El número de cuenta es obligatorio")
+    @Size(max = 100)
+    private String numeroCuenta;
 }
