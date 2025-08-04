@@ -39,18 +39,15 @@ public class NegocioService {
      */
     public List<NegocioResponseDTO> getAll(Boolean estado) {
         if (estado == null) {
-            System.out.println("null");
             return negocioRepository.findAll().stream()
                     .map(negocioMapper::toResponseDTO)
                     .collect(Collectors.toList());
         } else if (estado) {
-            System.out.println("true");
             return negocioRepository.findAll().stream()
                     .filter(Negocio::isEstado)
                     .map(negocioMapper::toResponseDTO)
                     .collect(Collectors.toList());
         } else {
-            System.out.println("false");
             return negocioRepository.findAll().stream()
                     .filter(negocio -> !negocio.isEstado())
                     .map(negocioMapper::toResponseDTO)

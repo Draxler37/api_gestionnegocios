@@ -27,7 +27,7 @@ public class ConceptoController {
      *
      * @return Lista de ConceptoResponseDTO.
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CEO', 'EMPLEADO')")
     @GetMapping
     public ResponseEntity<List<ConceptoResponseDTO>> getAll() {
         return ResponseEntity.ok(conceptoService.getAll());
@@ -39,7 +39,7 @@ public class ConceptoController {
      * @param dto ConceptoRequestDTO con los datos del concepto a crear.
      * @return ConceptoResponseDTO del concepto creado.
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CEO')")
     @PostMapping
     public ResponseEntity<ConceptoResponseDTO> create(@RequestBody ConceptoRequestDTO dto) {
         return ResponseEntity.ok(conceptoService.create(dto));
@@ -52,7 +52,7 @@ public class ConceptoController {
      * @param dto ConceptoRequestDTO con los nuevos datos del concepto.
      * @return ConceptoResponseDTO del concepto actualizado.
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CEO')")
     @PutMapping("/{id}")
     public ResponseEntity<ConceptoResponseDTO> update(@PathVariable Integer id, @RequestBody ConceptoRequestDTO dto) {
         return ResponseEntity.ok(conceptoService.update(id, dto));
@@ -64,7 +64,7 @@ public class ConceptoController {
      * @param id ID del concepto a eliminar.
      * @return Respuesta vacía con código 204 No Content.
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CEO')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         conceptoService.delete(id);
