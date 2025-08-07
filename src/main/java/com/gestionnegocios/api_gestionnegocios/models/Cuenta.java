@@ -2,10 +2,13 @@
 package com.gestionnegocios.api_gestionnegocios.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -58,6 +61,10 @@ public class Cuenta {
     @Size(max = 100)
     @Column(name = "numero_cuenta", length = 100, nullable = false)
     private String numeroCuenta;
+
+    @Builder.Default
+    @Column(name = "estado", nullable = false)
+    private boolean estado = true;
 
     @Builder.Default
     @JsonIgnore

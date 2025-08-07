@@ -3,11 +3,8 @@ package com.gestionnegocios.api_gestionnegocios.mapper;
 import com.gestionnegocios.api_gestionnegocios.dto.Negocio.NegocioRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Negocio.NegocioResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.models.Negocio;
-import org.mapstruct.*;
 
-import org.mapstruct.Mapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 /**
  * Mapper para convertir entre Negocio y sus DTOs.
