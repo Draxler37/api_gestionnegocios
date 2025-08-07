@@ -23,12 +23,6 @@ public class MonedaController {
     }
 
     @PreAuthorize("hasRole('CEO')")
-    @GetMapping("/{id}")
-    public ResponseEntity<MonedaResponseDTO> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(monedaService.getById(id));
-    }
-
-    @PreAuthorize("hasRole('CEO')")
     @PostMapping
     public ResponseEntity<MonedaResponseDTO> create(@Validated @RequestBody MonedaRequestDTO dto) {
         return ResponseEntity.ok(monedaService.create(dto));

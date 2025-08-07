@@ -23,12 +23,6 @@ public class MonedaService {
                 .collect(Collectors.toList());
     }
 
-    public MonedaResponseDTO getById(Integer id) {
-        return monedaRepository.findById(id)
-                .map(monedaMapper::toResponseDTO)
-                .orElseThrow(() -> new RuntimeException("Moneda no encontrada"));
-    }
-
     @Transactional
     public MonedaResponseDTO create(MonedaRequestDTO dto) {
         Moneda moneda = monedaMapper.toEntity(dto);
