@@ -58,12 +58,4 @@ public class MovimientoService {
         movimiento.setMonto(dto.getMonto());
         return movimientoMapper.toResponseDTO(movimientoRepository.save(movimiento));
     }
-
-    @Transactional
-    public void delete(Integer id) {
-        if (!movimientoRepository.existsById(id)) {
-            throw new RuntimeException("Movimiento no encontrado");
-        }
-        movimientoRepository.deleteById(id);
-    }
 }

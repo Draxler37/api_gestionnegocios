@@ -17,10 +17,22 @@ public class TipoCuentaService {
     private final TipoCuentaRepository tipoCuentaRepository;
     private final TipoCuentaMapper tipoCuentaMapper;
 
-    public List<TipoCuentaResponseDTO> getAll() {
-        return tipoCuentaRepository.findAll().stream()
-                .map(tipoCuentaMapper::toResponseDTO)
-                .collect(Collectors.toList());
+    public List<TipoCuentaResponseDTO> getAll(Boolean estado) {
+        if (estado == null) {
+            return tipoCuentaRepository.findAll().stream()
+                    .map(tipoCuentaMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+        } else if (estado) {
+            return tipoCuentaRepository.findAll().stream()
+                    .filter(TipoCuenta::isEstado)
+                    .map(tipoCuentaMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+        } else {
+            return tipoCuentaRepository.findAll().stream()
+                    .filter(tipocuenta -> !tipocuenta.isEstado())
+                    .map(tipoCuentaMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+        }
     }
 
     @Transactional
@@ -37,11 +49,28 @@ public class TipoCuentaService {
         return tipoCuentaMapper.toResponseDTO(tipoCuentaRepository.save(tipoCuenta));
     }
 
+    public boolean desactivar(Integer id) {
+        return tipoCuentaRepository.findById(id).map(tipoCuenta -> {
+            tipoCuenta.setEstado(false);
+            tipoCuentaRepository.save(tipoCuenta);
+            return true;
+        }).orElse(false);
+    }
+
     @Transactional
-    public void delete(Integer id) {
-        if (!tipoCuentaRepository.existsById(id)) {
-            throw new RuntimeException("TipoCuenta no encontrado");
-        }
-        tipoCuentaRepository.deleteById(id);
+    public boolean activar(Integer id) {
+        return tipoCuentaRepository.findById(id).map(tipoCuenta -> {
+            tipoCuenta.setEstado(true);
+            tipoCuentaRepository.save(tipoCuenta);
+            return true;
+        }).orElse(false);
+    }
+
+    @Transactional
+    public boolean delete(Integer id) {
+        return tipoCuentaRepository.findById(id).map(tipoCuenta -> {
+            tipoCuentaRepository.delete(tipoCuenta);
+            return true;
+        }).orElse(false);
     }
 }

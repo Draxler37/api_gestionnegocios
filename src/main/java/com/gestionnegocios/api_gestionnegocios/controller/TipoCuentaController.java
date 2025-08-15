@@ -18,8 +18,8 @@ public class TipoCuentaController {
 
     @PreAuthorize("hasRole('CEO')")
     @GetMapping
-    public List<TipoCuentaResponseDTO> getAll() {
-        return tipoCuentaService.getAll();
+    public List<TipoCuentaResponseDTO> getAll(@RequestParam(required = false) Boolean estado) {
+        return tipoCuentaService.getAll(estado);
     }
 
     @PreAuthorize("hasRole('CEO')")
@@ -35,10 +35,23 @@ public class TipoCuentaController {
         return ResponseEntity.ok(tipoCuentaService.update(id, dto));
     }
 
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
+        boolean ok = tipoCuentaService.desactivar(id);
+        return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @PreAuthorize("hasRole('CEO')")
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<Void> activate(@PathVariable Integer id) {
+        boolean ok = tipoCuentaService.activar(id);
+        return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
     @PreAuthorize("hasRole('CEO')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        tipoCuentaService.delete(id);
-        return ResponseEntity.noContent().build();
+        boolean ok = tipoCuentaService.delete(id);
+        return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }

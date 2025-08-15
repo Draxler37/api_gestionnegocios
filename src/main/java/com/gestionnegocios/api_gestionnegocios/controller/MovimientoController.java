@@ -40,11 +40,4 @@ public class MovimientoController {
             @Validated @RequestBody MovimientoRequestDTO dto) {
         return ResponseEntity.ok(movimientoService.update(id, dto));
     }
-
-    @PreAuthorize("hasRole('CEO')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        movimientoService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
 }
