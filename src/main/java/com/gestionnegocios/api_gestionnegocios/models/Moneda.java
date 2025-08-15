@@ -33,6 +33,10 @@ public class Moneda {
     private String nombre;
 
     @Builder.Default
+    @Column(name = "estado", nullable = false)
+    private boolean estado = true;
+
+    @Builder.Default
     @JsonIgnore
     @OneToMany(mappedBy = "moneda")
     private Set<Cuenta> cuentas = new HashSet<>();

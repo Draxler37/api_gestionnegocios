@@ -18,8 +18,8 @@ public class MonedaController {
 
     @PreAuthorize("hasRole('CEO')")
     @GetMapping
-    public List<MonedaResponseDTO> getAll() {
-        return monedaService.getAll();
+    public List<MonedaResponseDTO> getAll(@RequestParam(required = false) Boolean estado) {
+        return monedaService.getAll(estado);
     }
 
     @PreAuthorize("hasRole('CEO')")
@@ -33,6 +33,19 @@ public class MonedaController {
     public ResponseEntity<MonedaResponseDTO> update(@PathVariable Integer id,
             @Validated @RequestBody MonedaRequestDTO dto) {
         return ResponseEntity.ok(monedaService.update(id, dto));
+    }
+
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
+        boolean ok = monedaService.desactivar(id);
+        return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @PreAuthorize("hasRole('CEO')")
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<Void> activate(@PathVariable Integer id) {
+        boolean ok = monedaService.activar(id);
+        return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
     @PreAuthorize("hasRole('CEO')")

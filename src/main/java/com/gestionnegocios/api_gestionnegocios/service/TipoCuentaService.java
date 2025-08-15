@@ -49,6 +49,7 @@ public class TipoCuentaService {
         return tipoCuentaMapper.toResponseDTO(tipoCuentaRepository.save(tipoCuenta));
     }
 
+    @Transactional
     public boolean desactivar(Integer id) {
         return tipoCuentaRepository.findById(id).map(tipoCuenta -> {
             tipoCuenta.setEstado(false);

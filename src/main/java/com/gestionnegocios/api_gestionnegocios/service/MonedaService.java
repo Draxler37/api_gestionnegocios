@@ -17,10 +17,22 @@ public class MonedaService {
     private final MonedaRepository monedaRepository;
     private final MonedaMapper monedaMapper;
 
-    public List<MonedaResponseDTO> getAll() {
-        return monedaRepository.findAll().stream()
-                .map(monedaMapper::toResponseDTO)
-                .collect(Collectors.toList());
+    public List<MonedaResponseDTO> getAll(Boolean estado) {
+        if (estado == null) {
+            return monedaRepository.findAll().stream()
+                    .map(monedaMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+        } else if (estado) {
+            return monedaRepository.findAll().stream()
+                    .filter(Moneda::isEstado)
+                    .map(monedaMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+        } else {
+            return monedaRepository.findAll().stream()
+                    .filter(moneda -> !moneda.isEstado())
+                    .map(monedaMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+        }
     }
 
     @Transactional
@@ -35,6 +47,24 @@ public class MonedaService {
                 .orElseThrow(() -> new RuntimeException("Moneda no encontrada"));
         monedaMapper.updateEntityFromDto(dto, moneda);
         return monedaMapper.toResponseDTO(monedaRepository.save(moneda));
+    }
+
+    @Transactional
+    public boolean desactivar(Integer id) {
+        return monedaRepository.findById(id).map(moneda -> {
+            moneda.setEstado(false);
+            monedaRepository.save(moneda);
+            return true;
+        }).orElse(false);
+    }
+
+    @Transactional
+    public boolean activar(Integer id) {
+        return monedaRepository.findById(id).map(moneda -> {
+            moneda.setEstado(true);
+            monedaRepository.save(moneda);
+            return true;
+        }).orElse(false);
     }
 
     @Transactional
