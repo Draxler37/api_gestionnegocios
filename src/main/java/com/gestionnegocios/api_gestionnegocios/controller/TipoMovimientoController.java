@@ -1,6 +1,5 @@
 package com.gestionnegocios.api_gestionnegocios.controller;
 
-import com.gestionnegocios.api_gestionnegocios.dto.TipoMovimiento.TipoMovimientoRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.TipoMovimiento.TipoMovimientoResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.service.TipoMovimientoService;
 
@@ -31,44 +30,5 @@ public class TipoMovimientoController {
     @GetMapping
     public ResponseEntity<List<TipoMovimientoResponseDTO>> getAll() {
         return ResponseEntity.ok(tipoMovimientoService.getAll());
-    }
-
-    /**
-     * Crea un nuevo tipo de movimiento.
-     * 
-     * @param dto DTO con los datos del tipo de movimiento a crear.
-     * @return TipoMovimientoResponseDTO del tipo de movimiento creado.
-     */
-    @PreAuthorize("hasRole('CEO')")
-    @PostMapping
-    public ResponseEntity<TipoMovimientoResponseDTO> create(@RequestBody TipoMovimientoRequestDTO dto) {
-        return ResponseEntity.ok(tipoMovimientoService.create(dto));
-    }
-
-    /**
-     * Actualiza un tipo de movimiento.
-     * 
-     * @param id ID del tipo de movimiento a actualizar.
-     * @param dto DTO con los nuevos datos del tipo de movimiento.
-     * @return TipoMovimientoResponseDTO del tipo de movimiento actualizado.
-     */
-    @PreAuthorize("hasRole('CEO')")
-    @PutMapping("/{id}")
-    public ResponseEntity<TipoMovimientoResponseDTO> update(@PathVariable Integer id,
-            @RequestBody TipoMovimientoRequestDTO dto) {
-        return ResponseEntity.ok(tipoMovimientoService.update(id, dto));
-    }
-
-    /**
-     * Elimina un tipo de movimiento.
-     * 
-     * @param id ID del tipo de movimiento a eliminar.
-     * @return ResponseEntity<Void> indicando el resultado de la operación.
-     */
-    @PreAuthorize("hasRole('CEO')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        tipoMovimientoService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 }

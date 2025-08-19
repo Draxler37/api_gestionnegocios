@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 public class MovimientoResponseDTO {
     private Integer id;
     private Integer idCuenta;
-    private Integer idTipoMovimiento;
     private Integer idConcepto;
     private BigDecimal monto;
     private String descripcion;

@@ -17,6 +17,7 @@ public class MonedaService {
     private final MonedaRepository monedaRepository;
     private final MonedaMapper monedaMapper;
 
+    @Transactional(readOnly = true)
     public List<MonedaResponseDTO> getAll(Boolean estado) {
         if (estado == null) {
             return monedaRepository.findAll().stream()
@@ -58,6 +59,12 @@ public class MonedaService {
         }).orElse(false);
     }
 
+    /**
+     * Activa una moneda por su ID.
+     * 
+     * @param id ID de la moneda a activar.
+     * @return true si la moneda fue activada, false si no se encontró.         
+     */
     @Transactional
     public boolean activar(Integer id) {
         return monedaRepository.findById(id).map(moneda -> {

@@ -22,8 +22,10 @@ public interface CuentaMapper {
     @Mapping(target = "negocio", ignore = true)
     @Mapping(target = "tipoCuenta", ignore = true)
     @Mapping(target = "moneda", ignore = true)
+    @Mapping(target = "balance", ignore = true)
     @Mapping(target = "movimientos", ignore = true)
     @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "estado", ignore = true)
     Cuenta toEntity(CuentaRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -31,7 +33,9 @@ public interface CuentaMapper {
     @Mapping(target = "negocio", ignore = true)
     @Mapping(target = "tipoCuenta", ignore = true)
     @Mapping(target = "moneda", ignore = true)
+    @Mapping(target = "balance", ignore = true)
     @Mapping(target = "movimientos", ignore = true)
     @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "estado", ignore = true)
     void updateEntityFromDto(CuentaRequestDTO dto, @MappingTarget Cuenta cuenta);
 }

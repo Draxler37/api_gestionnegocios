@@ -33,6 +33,10 @@ public class TipoMovimiento {
     private String nombre;
 
     @Builder.Default
+    @Column(name = "estado", nullable = false)
+    private boolean estado = true;
+
+    @Builder.Default
     @JsonIgnore
     @OneToMany(mappedBy = "tipoMovimiento")
     private Set<Movimiento> movimientos = new HashSet<>();

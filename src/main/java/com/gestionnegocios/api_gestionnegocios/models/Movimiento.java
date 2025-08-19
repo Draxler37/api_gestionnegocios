@@ -35,11 +35,6 @@ public class Movimiento {
     private LocalDateTime fechaMovimiento;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_tipo_mov", nullable = false)
-    private TipoMovimiento tipoMovimiento;
-
-    @NotNull
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal monto;
 
