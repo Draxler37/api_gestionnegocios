@@ -1,6 +1,8 @@
 package com.gestionnegocios.api_gestionnegocios.security;
 
 import com.gestionnegocios.api_gestionnegocios.repository.UsuarioRepository;
+import com.gestionnegocios.api_gestionnegocios.repository.RolRepository;
+import com.gestionnegocios.api_gestionnegocios.models.Rol;
 import com.gestionnegocios.api_gestionnegocios.models.Usuario;
 
 import jakarta.servlet.FilterChain;
@@ -30,8 +32,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final UsuarioRepository usuarioRepository;
 
-    public JwtAuthenticationFilter(UsuarioRepository usuarioRepository) {
+    private final RolRepository rolRepository;
+
+    public JwtAuthenticationFilter(UsuarioRepository usuarioRepository, RolRepository rolRepository) {
         this.usuarioRepository = usuarioRepository;
+        this.rolRepository = rolRepository;
     }
 
     @Override
@@ -53,14 +58,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Validar el token y establecer la autenticación
             if (jwtUtil.isTokenValid(token)) {
                 String username = jwtUtil.getUsername(token);
-                List<String> roles = jwtUtil.getRoles(token);
-                // Prefijo ROLE_ para compatibilidad con @PreAuthorize("hasRole('ADMIN')")
-                var authorities = roles.stream()
-                        .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+                List<String> rolesToken = jwtUtil.getRoles(token);
 
-                // Verificar si el usuario está activo
+                // 🔎 Validar si el usuario existe y está activo
                 Usuario usuario = usuarioRepository.findByEmail(username).orElse(null);
                 if (usuario == null || !usuario.isEstado()) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -68,8 +68,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        username, null, authorities);
+                // 🔎 Validar si los roles siguen activos en la BD
+                List<String> rolesActivos = rolesToken.stream()
+                        .filter(role -> rolRepository.findByNombre(role)
+                                .map(Rol::isEstado)   // Solo pasa si el rol sigue activo
+                                .orElse(false))
+                        .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                        .collect(Collectors.toList());
+
+                if (rolesActivos.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write("Usuario sin roles válidos");
+                    return;
+                }
+
+                // Crear la autenticación con roles activos
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(username, null,
+                                rolesActivos.stream()
+                                        .map(SimpleGrantedAuthority::new)
+                                        .collect(Collectors.toList()));
+
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

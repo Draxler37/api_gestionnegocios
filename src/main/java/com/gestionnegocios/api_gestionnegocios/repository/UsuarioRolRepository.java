@@ -13,4 +13,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UsuarioRolRepository extends JpaRepository<UsuarioRol, Integer> {
     List<UsuarioRol> findByUsuarioId(Integer id);
+
+    long countByRolId(Integer rolId);
 }

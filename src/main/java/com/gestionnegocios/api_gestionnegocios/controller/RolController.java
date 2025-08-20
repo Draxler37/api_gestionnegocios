@@ -30,8 +30,8 @@ public class RolController {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public List<RolResponseDTO> getAll() {
-        return rolService.getAll();
+    public List<RolResponseDTO> getAll(@RequestParam(required = false) Boolean estado) {
+        return rolService.getAll(estado);
     }
 
     /**
@@ -61,6 +61,20 @@ public class RolController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole('Admin')")
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
+        boolean ok = rolService.desactivar(id);
+        return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<Void> activate(@PathVariable Integer id) {
+        boolean ok = rolService.activar(id);
+        return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
     /**
      * Elimina un rol por ID.
      * No permite eliminar si el rol tiene usuarios asociados.
@@ -72,10 +86,23 @@ public class RolController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable Integer id) {
-        boolean deleted = rolService.delete(id);
-        if (deleted)
+        if (rolService.delete(id))
             return ResponseEntity.ok("Rol eliminado correctamente");
+
         return ResponseEntity.badRequest()
-                .body("No se puede eliminar el rol porque tiene usuarios asociados o no existe");
+                .body("No se puede eliminar: rol en uso por usuarios");
+    }
+
+    /**
+     * Verifica si un rol puede ser eliminado.
+     *
+     * @param id ID del rol a verificar.
+     * @return true si el rol puede ser eliminado, false si no se encontró o tiene
+     *         usuarios asociados.
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{id}/can-delete")
+    public ResponseEntity<Boolean> canDelete(@PathVariable Integer id) {
+        return ResponseEntity.ok(rolService.canBeDeleted(id));
     }
 }

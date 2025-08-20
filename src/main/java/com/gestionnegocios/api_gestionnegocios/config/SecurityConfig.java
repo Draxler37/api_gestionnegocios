@@ -1,4 +1,3 @@
-
 package com.gestionnegocios.api_gestionnegocios.config;
 
 import org.springframework.context.annotation.Bean;

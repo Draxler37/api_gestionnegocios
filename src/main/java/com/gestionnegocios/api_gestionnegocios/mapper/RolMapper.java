@@ -13,11 +13,13 @@ public interface RolMapper {
     RolResponseDTO toResponseDTO(Rol rol);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "estado", ignore = true)
     @Mapping(target = "usuarios", ignore = true)
     Rol toEntity(RolRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "estado", ignore = true)
     @Mapping(target = "usuarios", ignore = true)
     void updateEntityFromDto(RolRequestDTO dto, @MappingTarget Rol rol);
 }

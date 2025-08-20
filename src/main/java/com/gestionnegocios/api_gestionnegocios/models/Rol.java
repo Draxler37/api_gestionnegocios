@@ -32,6 +32,10 @@ public class Rol {
     private String nombre;
 
     @Builder.Default
+    @Column(name = "estado", nullable = false)
+    private boolean estado = true;
+
+    @Builder.Default
     @JsonIgnore
     @ManyToMany(mappedBy = "roles")
     private Set<Usuario> usuarios = new HashSet<>();

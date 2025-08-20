@@ -14,3 +14,7 @@
 5: Guardar informacion en cache para no hacer perticiones constantes al backend.
 
 6: Investigar estructura hexagonal.
+
+Por donde me quedé:
+-Tengo que probar los endpoints de Rol.
+-Añadir comprobacion de eliminacion de entidades que tiene relacion a parte de que se desactiven o activen.
