@@ -70,6 +70,12 @@ public class Negocio {
     @OneToMany(mappedBy = "negocio", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Concepto> conceptos = new HashSet<>();
 
+    @Builder.Default
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(name = "negocio_empleado", joinColumns = @JoinColumn(name = "id_negocio"), inverseJoinColumns = @JoinColumn(name = "id_usuario"))
+    private Set<Usuario> empleados = new HashSet<>();
+
     @PrePersist
     public void prePersist() {
         if (fechaCreacion == null) {

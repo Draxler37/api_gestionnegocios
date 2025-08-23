@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,16 +38,13 @@ public class NegocioService {
      * Si el estado es false, devuelve solo los Negocios inactivos.
      *
      * @param estado Estado del negocio (null, true o false).
+     * @param email  Email del usuario propietario de los negocios.
      * @return Lista de Negocios filtrados.
      */
     public List<NegocioResponseDTO> getAll(String email, Boolean estado) {
-        List<Negocio> negocios;
-
-        if (estado == null) {
-            negocios = negocioRepository.findByUsuarioEmail(email);
-        } else {
-            negocios = negocioRepository.findByUsuarioEmailAndEstado(email, estado);
-        }
+        List<Negocio> negocios = (estado == null)
+                ? negocioRepository.findByUsuarioEmail(email)
+                : negocioRepository.findByUsuarioEmailAndEstado(email, estado);
 
         return negocios.stream()
                 .map(negocioMapper::toResponseDTO)
@@ -62,10 +58,9 @@ public class NegocioService {
      * @return Negocio creado con estado 201 Created.
      */
     @Transactional
-    public NegocioResponseDTO addNegocio(NegocioRequestDTO negocioRequest) {
+    public NegocioResponseDTO addNegocio(String email, NegocioRequestDTO negocioRequest) {
         // Obtiene el usuario autenticado desde el contexto de seguridad
         // Asumiendo que el usuario está autenticado y tiene un email único
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con email: " + email));
 

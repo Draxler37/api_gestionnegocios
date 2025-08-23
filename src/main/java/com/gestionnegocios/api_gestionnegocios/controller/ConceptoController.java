@@ -23,14 +23,16 @@ public class ConceptoController {
     private final ConceptoService conceptoService;
 
     /**
-     * Obtiene todos los conceptos.
-     *
+     * Obtiene todos los conceptos de un negocio específico.
+     * 
+     * @param id ID del negocio para filtrar los conceptos.
      * @return Lista de ConceptoResponseDTO.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'CEO', 'EMPLEADO')")
-    @GetMapping
-    public ResponseEntity<List<ConceptoResponseDTO>> getAll() {
-        return ResponseEntity.ok(conceptoService.getAll());
+    @PreAuthorize("(hasRole('CEO') and @negocioSecurity.isOwner(authentication, #id))" +
+            " or (hasRole('EMPLEADO') and @conceptoSecurity.isMember(authentication, #id))")
+    @GetMapping("/{id}/negocio")
+    public ResponseEntity<List<ConceptoResponseDTO>> getAll(@PathVariable Integer id) {
+        return ResponseEntity.ok(conceptoService.getAll(id));
     }
 
     /**
@@ -52,7 +54,7 @@ public class ConceptoController {
      * @param dto ConceptoRequestDTO con los nuevos datos del concepto.
      * @return ConceptoResponseDTO del concepto actualizado.
      */
-    @PreAuthorize("hasRole('CEO')")
+    @PreAuthorize("hasRole('CEO') and @conceptoSecurity.isOwner(authentication, #id)")
     @PutMapping("/{id}")
     public ResponseEntity<ConceptoResponseDTO> update(@PathVariable Integer id, @RequestBody ConceptoRequestDTO dto) {
         return ResponseEntity.ok(conceptoService.update(id, dto));
@@ -64,7 +66,7 @@ public class ConceptoController {
      * @param id ID del concepto a eliminar.
      * @return Respuesta vacía con código 204 No Content.
      */
-    @PreAuthorize("hasRole('CEO')")
+    @PreAuthorize("hasRole('CEO') and @conceptoSecurity.isOwner(authentication, #id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         conceptoService.delete(id);

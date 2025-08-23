@@ -38,13 +38,9 @@ public class RolService {
      * @return Lista de roles filtrados.
      */
     public List<RolResponseDTO> getAll(Boolean estado) {
-        List<Rol> roles;
-
-        if (estado == null) {
-            roles = rolRepository.findAll();
-        } else {
-            roles = rolRepository.findByEstado(estado);
-        }
+        List<Rol> roles = (estado == null)
+                ? rolRepository.findAll()
+                : rolRepository.findByEstado(estado);
 
         return roles.stream()
                 .map(rolMapper::toResponseDTO)

@@ -12,4 +12,6 @@ import java.util.List;
 @Repository
 public interface MovimientoRepository extends JpaRepository<Movimiento, Integer> {
     List<Movimiento> findByCuentaId(Integer cuentaId);
+
+    boolean existsByConceptoId(Integer conceptoId);
 }

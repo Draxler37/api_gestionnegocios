@@ -67,6 +67,11 @@ public class Usuario {
     @JoinTable(name = "usuario_rol", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_rol"))
     private Set<Rol> roles = new HashSet<>();
 
+    @Builder.Default
+    @JsonIgnore
+    @ManyToMany(mappedBy = "empleados")
+    private Set<Negocio> negociosEmpleado = new HashSet<>();
+
     @PrePersist
     public void prePersist() {
         if (fechaRegistro == null) {

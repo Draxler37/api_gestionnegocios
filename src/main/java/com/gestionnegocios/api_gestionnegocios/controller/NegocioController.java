@@ -55,8 +55,9 @@ public class NegocioController {
      */
     @PreAuthorize("hasRole('CEO')")
     @PostMapping("/add")
-    public ResponseEntity<NegocioResponseDTO> addNegocio(@Validated @RequestBody NegocioRequestDTO negocioRequest) {
-        NegocioResponseDTO createdNegocio = negocioService.addNegocio(negocioRequest);
+    public ResponseEntity<NegocioResponseDTO> addNegocio(@AuthenticationPrincipal String email,
+            @Validated @RequestBody NegocioRequestDTO negocioRequest) {
+        NegocioResponseDTO createdNegocio = negocioService.addNegocio(email, negocioRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdNegocio);
     }
 

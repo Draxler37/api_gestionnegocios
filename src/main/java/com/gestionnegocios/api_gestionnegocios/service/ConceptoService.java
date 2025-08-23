@@ -25,18 +25,20 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ConceptoService {
+    private final com.gestionnegocios.api_gestionnegocios.repository.MovimientoRepository movimientoRepository;
     private final ConceptoRepository conceptoRepository;
     private final NegocioRepository negocioRepository;
     private final TipoMovimientoRepository tipoMovimientoRepository;
     private final ConceptoMapper conceptoMapper;
 
     /**
-     * Obtiene todos los conceptos.
+     * Obtiene todos los conceptos de un negocio específico.
      *
+     * @param idNegocio ID del negocio para filtrar los conceptos.
      * @return Lista de ConceptoResponseDTO.
      */
-    public List<ConceptoResponseDTO> getAll() {
-        return conceptoRepository.findAll().stream()
+    public List<ConceptoResponseDTO> getAll(Integer idNegocio) {
+        return conceptoRepository.findByNegocioId(idNegocio).stream()
                 .map(conceptoMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -99,6 +101,10 @@ public class ConceptoService {
     public void delete(Integer id) {
         if (!conceptoRepository.existsById(id)) {
             throw new RuntimeException("Concepto no encontrado");
+        }
+        // Verificar si el concepto está usado en algún movimiento
+        if (movimientoRepository.existsByConceptoId(id)) {
+            throw new RuntimeException("No se puede eliminar: el concepto está usado en al menos un movimiento.");
         }
         conceptoRepository.deleteById(id);
     }
