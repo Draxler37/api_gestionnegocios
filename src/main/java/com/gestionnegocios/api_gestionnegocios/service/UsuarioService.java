@@ -40,21 +40,17 @@ public class UsuarioService {
      * @return Lista de usuarios filtrados.
      */
     public List<UsuarioResponseDTO> getAll(Boolean estado) {
+        List<Usuario> usuario;
+
         if (estado == null) {
-            return usuarioRepository.findAll().stream()
-                    .map(usuarioMapper::toResponseDTO)
-                    .collect(Collectors.toList());
-        } else if (estado) {
-            return usuarioRepository.findAll().stream()
-                    .filter(Usuario::isEstado)
-                    .map(usuarioMapper::toResponseDTO)
-                    .collect(Collectors.toList());
+            usuario = usuarioRepository.findAll();
         } else {
-            return usuarioRepository.findAll().stream()
-                    .filter(usuario -> !usuario.isEstado())
-                    .map(usuarioMapper::toResponseDTO)
-                    .collect(Collectors.toList());
+            usuario = usuarioRepository.findByEstado(estado);
         }
+
+        return usuario.stream()
+                .map(usuarioMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     /**

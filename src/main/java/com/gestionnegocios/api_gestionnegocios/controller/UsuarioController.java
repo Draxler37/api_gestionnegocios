@@ -70,7 +70,7 @@ public class UsuarioController {
      * @return 204 No Content si se desactivó correctamente, 404 si no existe.
      */
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}/deactivate")
+    @PatchMapping("/{id}/deactivate")
     public ResponseEntity<Void> deactivateUsuario(@PathVariable Integer id) {
         boolean deleted = usuarioService.deactivateUsuario(id);
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
@@ -83,7 +83,7 @@ public class UsuarioController {
      * @return 200 OK si se activó correctamente, 404 si no existe.
      */
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}/activate")
+    @PatchMapping("/{id}/activate")
     public ResponseEntity<UsuarioResponseDTO> activarUsuario(@PathVariable Integer id) {
         return usuarioService.activarUsuario(id)
                 .map(ResponseEntity::ok)
@@ -116,8 +116,9 @@ public class UsuarioController {
     @DeleteMapping("/roles")
     public ResponseEntity<String> removeRolFromUsuario(@RequestBody UsuarioRolRequestDTO dto) {
         boolean removed = usuarioService.removeRolFromUsuario(dto.getIdUsuario(), dto.getIdRol());
-        if (removed)
+        if (removed) {
             return ResponseEntity.ok("Rol eliminado correctamente");
+        }
         return ResponseEntity.badRequest().body("No se pudo eliminar el rol");
     }
 }

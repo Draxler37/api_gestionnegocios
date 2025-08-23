@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,9 +41,10 @@ public class NegocioController {
      */
     @PreAuthorize("hasRole('CEO')")
     @GetMapping
-    public List<NegocioResponseDTO> getAll(@AuthenticationPrincipal UserDetails userDetails,
+    public List<NegocioResponseDTO> getAll(
+            @AuthenticationPrincipal String email,
             @RequestParam(required = false) Boolean estado) {
-        return negocioService.getAll(userDetails.getUsername(), estado);
+        return negocioService.getAll(email, estado);
     }
 
     /**
