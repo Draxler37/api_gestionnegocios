@@ -12,4 +12,8 @@ import java.util.List;
 @Repository
 public interface NegocioRepository extends JpaRepository<Negocio, Integer> {
     List<Negocio> findByUsuarioId(Integer usuarioId);
+
+    List<Negocio> findByUsuarioEmail(String email);
+
+    List<Negocio> findByUsuarioEmailAndEstado(String email, boolean estado);
 }

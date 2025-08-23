@@ -5,8 +5,12 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,22 +42,9 @@ public class NegocioController {
      */
     @PreAuthorize("hasRole('CEO')")
     @GetMapping
-    public List<NegocioResponseDTO> getAll(@RequestParam(required = false) Boolean estado) {
-        return negocioService.getAll(estado);
-    }
-
-    /**
-     * Obtiene un Negocio por su ID.
-     *
-     * @param id ID del Negocio.
-     * @return Negocio encontrado o 404 si no existe.
-     */
-    @PreAuthorize("hasRole('CEO')")
-    @GetMapping("/{id}")
-    public ResponseEntity<NegocioResponseDTO> getById(@PathVariable Integer id) {
-        return negocioService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public List<NegocioResponseDTO> getAll(@AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) Boolean estado) {
+        return negocioService.getAll(userDetails.getUsername(), estado);
     }
 
     /**
@@ -76,7 +67,7 @@ public class NegocioController {
      * @param negocioRequest Datos actualizados del Negocio.
      * @return Negocio actualizado con estado 200 OK o 404 si no existe.
      */
-    @PreAuthorize("hasRole('CEO')")
+    @PreAuthorize("hasRole('CEO') and @negocioSecurity.isOwner(authentication, #id)")
     @PutMapping("/{id}/update")
     public ResponseEntity<NegocioResponseDTO> updateNegocio(@Validated @PathVariable Integer id,
             @RequestBody NegocioRequestDTO negocioRequest) {
@@ -93,8 +84,8 @@ public class NegocioController {
      *         correctamente,
      *         o 404 Not Found si el Negocio no existe o ya está inactivo
      */
-    @PreAuthorize("hasRole('CEO')")
-    @PostMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('CEO') and @negocioSecurity.isOwner(authentication, #id)")
+    @PatchMapping("/{id}/deactivate")
     public ResponseEntity<Void> deactivateNegocio(@PathVariable Integer id) {
         boolean deactivated = negocioService.deactivateNegocio(id);
         return deactivated ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
@@ -107,10 +98,40 @@ public class NegocioController {
      * @return Respuesta vacía con estado 204 No Content si se activó correctamente,
      *         o 404 Not Found si el Negocio no existe o ya está activo
      */
-    @PreAuthorize("hasRole('CEO')")
-    @PostMapping("/{id}/activate")
+    @PreAuthorize("hasRole('CEO') and @negocioSecurity.isOwner(authentication, #id)")
+    @PatchMapping("/{id}/activate")
     public ResponseEntity<Void> activateNegocio(@PathVariable Integer id) {
         boolean activated = negocioService.activateNegocio(id);
         return activated ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    /**
+     * Elimina un negocio por ID.
+     * No permite eliminar si el negocio tiene dependencias asociadas.
+     *
+     * @param id ID del negocio a eliminar.
+     * @return Mensaje de éxito o error.
+     */
+    @PreAuthorize("hasRole('CEO') and @negocioSecurity.isOwner(authentication, #id)")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable Integer id) {
+        if (negocioService.delete(id)) {
+            return ResponseEntity.ok("Negocio eliminado correctamente");
+        }
+        return ResponseEntity.badRequest()
+                .body("No se puede eliminar: negocio en uso o no existe");
+    }
+
+    /**
+     * Verifica si un negocio puede ser eliminado.
+     *
+     * @param id ID del negocio a verificar.
+     * @return true si el negocio puede ser eliminado, false si no se encontró o
+     *         tiene dependencias.
+     */
+    @PreAuthorize("hasRole('CEO') and @negocioSecurity.isOwner(authentication, #id)")
+    @GetMapping("/{id}/can-delete")
+    public ResponseEntity<Boolean> canDelete(@PathVariable Integer id) {
+        return ResponseEntity.ok(negocioService.canBeDeleted(id));
     }
 }

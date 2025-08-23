@@ -29,26 +29,26 @@ public class RolService {
     private final UsuarioRolRepository usuarioRolRepository;
 
     /**
-     * Obtiene todos los roles.
+     * Obtiene una lista de roles filtrados por estado.
+     * Si el estado es null, devuelve todos los roles.
+     * Si el estado es true, devuelve solo los roles activos.
+     * Si el estado es false, devuelve solo los roles inactivos.
      *
-     * @return Lista de roles convertidos a DTOs.
+     * @param estado Estado del rol (null, true o false).
+     * @return Lista de roles filtrados.
      */
     public List<RolResponseDTO> getAll(Boolean estado) {
+        List<Rol> roles;
+
         if (estado == null) {
-            return rolRepository.findAll().stream()
-                    .map(rolMapper::toResponseDTO)
-                    .collect(Collectors.toList());
-        } else if (estado) {
-            return rolRepository.findAll().stream()
-                    .filter(Rol::isEstado)
-                    .map(rolMapper::toResponseDTO)
-                    .collect(Collectors.toList());
+            roles = rolRepository.findAll();
         } else {
-            return rolRepository.findAll().stream()
-                    .filter(rol -> !rol.isEstado())
-                    .map(rolMapper::toResponseDTO)
-                    .collect(Collectors.toList());
+            roles = rolRepository.findByEstado(estado);
         }
+
+        return roles.stream()
+                .map(rolMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     /**

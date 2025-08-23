@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.gestionnegocios.api_gestionnegocios.dto.Negocio.NegocioRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Negocio.NegocioResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.mapper.NegocioMapper;
@@ -27,6 +29,8 @@ public class NegocioService {
     private final NegocioRepository negocioRepository;
     private final NegocioMapper negocioMapper;
     private final UsuarioRepository usuarioRepository;
+    private final com.gestionnegocios.api_gestionnegocios.repository.CuentaRepository cuentaRepository;
+    private final com.gestionnegocios.api_gestionnegocios.repository.ConceptoRepository conceptoRepository;
 
     /**
      * Obtiene una lista de Negocios filtrados por estado.
@@ -37,34 +41,18 @@ public class NegocioService {
      * @param estado Estado del negocio (null, true o false).
      * @return Lista de Negocios filtrados.
      */
-    public List<NegocioResponseDTO> getAll(Boolean estado) {
-        if (estado == null) {
-            return negocioRepository.findAll().stream()
-                    .map(negocioMapper::toResponseDTO)
-                    .collect(Collectors.toList());
-        } else if (estado) {
-            return negocioRepository.findAll().stream()
-                    .filter(Negocio::isEstado)
-                    .map(negocioMapper::toResponseDTO)
-                    .collect(Collectors.toList());
-        } else {
-            return negocioRepository.findAll().stream()
-                    .filter(negocio -> !negocio.isEstado())
-                    .map(negocioMapper::toResponseDTO)
-                    .collect(Collectors.toList());
-        }
-    }
+    public List<NegocioResponseDTO> getAll(String email, Boolean estado) {
+        List<Negocio> negocios;
 
-    /**
-     * Obtiene un negocio por su ID.
-     *
-     * @param id ID del negocio.
-     * @return Negocio encontrado o vacío si no existe o está inactivo.
-     */
-    public Optional<NegocioResponseDTO> getById(Integer id) {
-        return negocioRepository.findById(id)
-                .filter(Negocio::isEstado)
-                .map(negocioMapper::toResponseDTO);
+        if (estado == null) {
+            negocios = negocioRepository.findByUsuarioEmail(email);
+        } else {
+            negocios = negocioRepository.findByUsuarioEmailAndEstado(email, estado);
+        }
+
+        return negocios.stream()
+                .map(negocioMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -73,6 +61,7 @@ public class NegocioService {
      * @param negocioRequest Datos del negocio a agregar.
      * @return Negocio creado con estado 201 Created.
      */
+    @Transactional
     public NegocioResponseDTO addNegocio(NegocioRequestDTO negocioRequest) {
         // Obtiene el usuario autenticado desde el contexto de seguridad
         // Asumiendo que el usuario está autenticado y tiene un email único
@@ -98,6 +87,7 @@ public class NegocioService {
      * @return Negocio actualizado con estado 200 OK o vacío si no existe o está
      *         inactivo.
      */
+    @Transactional
     public Optional<NegocioResponseDTO> updateNegocio(Integer id, NegocioRequestDTO negocioRequest) {
         return negocioRepository.findById(id)
                 .filter(Negocio::isEstado)
@@ -116,6 +106,7 @@ public class NegocioService {
      * @return Negocio desactivado con estado 200 OK o vacío si no existe o está
      *         inactivo.
      */
+    @Transactional
     public boolean deactivateNegocio(Integer id) {
         return negocioRepository.findById(id)
                 .filter(Negocio::isEstado)
@@ -134,6 +125,7 @@ public class NegocioService {
      * @return Negocio activado con estado 200 OK o vacío si no existe o está
      *         activo.
      */
+    @Transactional
     public boolean activateNegocio(Integer id) {
         return negocioRepository.findById(id)
                 .filter(negocio -> !negocio.isEstado()) // Verifica que esté inactivo
@@ -143,5 +135,46 @@ public class NegocioService {
                     return true; // Retorna true si se activó correctamente
                 })
                 .orElse(false); // Retorna false si no se encontró el negocio o ya estaba activo
+    }
+
+    /**
+     * Elimina un negocio por ID.
+     * No permite eliminar si el negocio tiene dependencias asociadas.
+     * 
+     * @param id ID del negocio a eliminar.
+     * @return true si se eliminó correctamente, false si no se encontró o tiene
+     *         dependencias.
+     */
+    @Transactional
+    public boolean delete(Integer id) {
+        if (!canBeDeleted(id)) {
+            return false;
+        }
+        negocioRepository.deleteById(id);
+        return true;
+    }
+
+    /**
+     * Verifica si un negocio puede ser eliminado.
+     *
+     * @param id ID del negocio a verificar.
+     * @return true si el negocio puede ser eliminado, false si no se encontró o
+     *         tiene dependencias.
+     */
+    public boolean canBeDeleted(Integer id) {
+        // Verifica si el negocio existe
+        if (!negocioRepository.existsById(id)) {
+            return false;
+        }
+        // Verifica si tiene cuentas asociadas
+        if (!cuentaRepository.findByNegocioId(id).isEmpty()) {
+            return false;
+        }
+        // Verifica si tiene conceptos asociados
+        if (!conceptoRepository.findAll().stream()
+                .filter(c -> c.getNegocio() != null && id.equals(c.getNegocio().getId())).findAny().isEmpty()) {
+            return false;
+        }
+        return true;
     }
 }

@@ -19,7 +19,6 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = { "movimientos" })
 public class TipoMovimiento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,15 +30,6 @@ public class TipoMovimiento {
     @Size(max = 50)
     @Column(name = "nombre_mov", nullable = false, unique = true, length = 50)
     private String nombre;
-
-    @Builder.Default
-    @Column(name = "estado", nullable = false)
-    private boolean estado = true;
-
-    @Builder.Default
-    @JsonIgnore
-    @OneToMany(mappedBy = "tipoMovimiento")
-    private Set<Movimiento> movimientos = new HashSet<>();
 
     @Builder.Default
     @JsonIgnore
