@@ -33,10 +33,6 @@ public class TipoCuenta {
     private String nombre;
 
     @Builder.Default
-    @Column(name = "estado", nullable = false)
-    private boolean estado = true;
-
-    @Builder.Default
     @JsonIgnore
     @OneToMany(mappedBy = "tipoCuenta")
     private Set<Cuenta> cuentas = new HashSet<>();
