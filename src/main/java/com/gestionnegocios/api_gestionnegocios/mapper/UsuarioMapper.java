@@ -17,5 +17,6 @@ public interface UsuarioMapper {
     @Mapping(target = "estado", ignore = true)
     @Mapping(target = "negocios", ignore = true)
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "negociosEmpleado", ignore = true)
     Usuario toEntity(UsuarioRequestDTO dto);
 }

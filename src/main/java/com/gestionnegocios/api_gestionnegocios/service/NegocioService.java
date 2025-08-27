@@ -10,11 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionnegocios.api_gestionnegocios.dto.Negocio.NegocioRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Negocio.NegocioResponseDTO;
+import com.gestionnegocios.api_gestionnegocios.dto.Usuario.UsuarioResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.mapper.NegocioMapper;
+import com.gestionnegocios.api_gestionnegocios.mapper.UsuarioMapper;
 import com.gestionnegocios.api_gestionnegocios.models.Negocio;
 import com.gestionnegocios.api_gestionnegocios.models.Usuario;
 import com.gestionnegocios.api_gestionnegocios.repository.NegocioRepository;
 import com.gestionnegocios.api_gestionnegocios.repository.UsuarioRepository;
+import com.gestionnegocios.api_gestionnegocios.repository.CuentaRepository;
+import com.gestionnegocios.api_gestionnegocios.repository.ConceptoRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,8 +32,32 @@ public class NegocioService {
     private final NegocioRepository negocioRepository;
     private final NegocioMapper negocioMapper;
     private final UsuarioRepository usuarioRepository;
-    private final com.gestionnegocios.api_gestionnegocios.repository.CuentaRepository cuentaRepository;
-    private final com.gestionnegocios.api_gestionnegocios.repository.ConceptoRepository conceptoRepository;
+    private final CuentaRepository cuentaRepository;
+    private final ConceptoRepository conceptoRepository;
+    private final UsuarioMapper usuarioMapper;
+
+    @Transactional
+    public void addEmpleado(Integer idNegocio, Integer idEmpleado) {
+        Negocio negocio = negocioRepository.findById(idNegocio)
+                .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
+        Usuario empleado = usuarioRepository.findById(idEmpleado)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        if (empleado.getRoles() == null
+                || empleado.getRoles().stream().noneMatch(r -> r.getNombre().equals("EMPLEADO"))) {
+            throw new RuntimeException("El usuario no tiene rol EMPLEADO");
+        }
+        negocio.getEmpleados().add(empleado);
+        negocioRepository.save(negocio);
+    }
+
+    public List<UsuarioResponseDTO> getEmpleados(
+            Integer idNegocio) {
+        Negocio negocio = negocioRepository.findById(idNegocio)
+                .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
+        return negocio.getEmpleados().stream()
+                .map(usuarioMapper::toResponseDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
 
     /**
      * Obtiene una lista de Negocios filtrados por estado.

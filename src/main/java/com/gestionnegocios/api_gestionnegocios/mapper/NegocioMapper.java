@@ -20,6 +20,7 @@ public interface NegocioMapper {
     @Mapping(target = "estado", ignore = true)
     @Mapping(target = "cuentas", ignore = true)
     @Mapping(target = "conceptos", ignore = true)
+    @Mapping(target = "empleados", ignore = true)
     Negocio toEntity(NegocioRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -29,5 +30,6 @@ public interface NegocioMapper {
     @Mapping(target = "estado", ignore = true)
     @Mapping(target = "cuentas", ignore = true)
     @Mapping(target = "conceptos", ignore = true)
+    @Mapping(target = "empleados", ignore = true)
     void updateEntityFromDto(NegocioRequestDTO dto, @MappingTarget Negocio negocio);
 }

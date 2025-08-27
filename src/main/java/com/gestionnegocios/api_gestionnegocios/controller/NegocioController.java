@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionnegocios.api_gestionnegocios.dto.Negocio.NegocioRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Negocio.NegocioResponseDTO;
+import com.gestionnegocios.api_gestionnegocios.dto.Usuario.UsuarioResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.service.NegocioService;
 
 import lombok.RequiredArgsConstructor;
@@ -134,5 +135,33 @@ public class NegocioController {
     @GetMapping("/{id}/can-delete")
     public ResponseEntity<Boolean> canDelete(@PathVariable Integer id) {
         return ResponseEntity.ok(negocioService.canBeDeleted(id));
+    }
+
+    /**
+     * Asocia un empleado a un negocio. Solo el CEO propietario puede hacerlo.
+     * 
+     * @param idNegocio  ID del negocio.
+     * @param idEmpleado ID del empleado a asociar.
+     * @return Mensaje de éxito.
+     */
+    @PreAuthorize("hasRole('CEO') and @negocioSecurity.isOwner(authentication, #idNegocio)")
+    @PostMapping("/{idNegocio}/empleados/{idEmpleado}")
+    public ResponseEntity<String> addEmpleado(@PathVariable Integer idNegocio, @PathVariable Integer idEmpleado) {
+        negocioService.addEmpleado(idNegocio, idEmpleado);
+        return ResponseEntity.ok("Empleado agregado correctamente");
+    }
+
+    /**
+     * Lista los empleados asociados a un negocio. Solo el CEO propietario puede
+     * verlo.
+     * 
+     * @param idNegocio ID del negocio.
+     * @return Lista de empleados asociados al negocio.
+     */
+    @PreAuthorize("hasRole('CEO') and @negocioSecurity.isOwner(authentication, #idNegocio)")
+    @GetMapping("/{idNegocio}/empleados")
+    public ResponseEntity<List<UsuarioResponseDTO>> getEmpleados(
+            @PathVariable Integer idNegocio) {
+        return ResponseEntity.ok(negocioService.getEmpleados(idNegocio));
     }
 }
