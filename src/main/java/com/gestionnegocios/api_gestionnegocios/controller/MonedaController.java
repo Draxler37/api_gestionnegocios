@@ -22,7 +22,7 @@ public class MonedaController {
      *
      * @return Lista de MonedaResponseDTO.
      */
-    @PreAuthorize("hasRole('CEO', 'EMPLEADO')")
+    @PreAuthorize("hasAnyRole('CEO', 'EMPLEADO')")
     @GetMapping
     public ResponseEntity<List<MonedaResponseDTO>> getAll() {
         return ResponseEntity.ok(monedaService.getAll());

@@ -2,6 +2,7 @@ package com.gestionnegocios.api_gestionnegocios.controller;
 
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaResponseDTO;
+import com.gestionnegocios.api_gestionnegocios.dto.Movimiento.MovimientoResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.service.CuentaService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,13 +20,27 @@ import java.util.List;
 public class CuentaController {
     private final CuentaService cuentaService;
 
-    @PreAuthorize("hasRole('CEO')")
+    /**
+     * Obtiene todas las cuentas de un negocio específico.
+     * Solo el CEO propietario del negocio puede verlas.
+     * 
+     * @param idNegocio ID del negocio para filtrar las cuentas.
+     * @param estado    (Opcional) Filtra por estado (activo/inactivo).
+     * @return Lista de CuentaResponseDTO.
+     */
+    @PreAuthorize("(hasRole('CEO') and @negocioSecurity.isOwner(authentication, #idNegocio))")
     @GetMapping
     public List<CuentaResponseDTO> getAllByNegocio(@RequestParam Integer idNegocio,
             @RequestParam(required = false) Boolean estado) {
         return cuentaService.getAllByNegocio(idNegocio, estado);
     }
 
+    /**
+     * Crea una nueva cuenta.
+     * 
+     * @param dto CuentaRequestDTO con los datos de la cuenta a crear.
+     * @return CuentaResponseDTO de la cuenta creada.
+     */
     @PreAuthorize("hasRole('CEO')")
     @PostMapping
     public ResponseEntity<CuentaResponseDTO> create(@Validated @RequestBody CuentaRequestDTO dto) {
@@ -33,9 +48,14 @@ public class CuentaController {
     }
 
     /**
-     * Solo permite actualizar la descripción de la cuenta.
+     * Actualiza la descripción de una cuenta.
+     * Solo el CEO propietario puede hacerlo.
+     * 
+     * @param id          ID de la cuenta a actualizar.
+     * @param descripcion Nueva descripción para la cuenta.
+     * @return CuentaResponseDTO de la cuenta actualizada.
      */
-    @PreAuthorize("hasRole('CEO')")
+    @PreAuthorize("hasRole('CEO') and @cuentaSecurity.isOwner(authentication, #id)")
     @PatchMapping("/{id}/descripcion")
     public ResponseEntity<CuentaResponseDTO> updateDescripcion(@PathVariable Integer id,
             @RequestBody String descripcion) {
@@ -45,9 +65,13 @@ public class CuentaController {
     }
 
     /**
-     * Desactiva una cuenta (soft delete).
+     * Desactiva una cuenta.
+     * Solo el CEO propietario puede hacerlo.
+     * 
+     * @param id ID de la cuenta a desactivar.
+     * @return 204 No Content si se desactiva, 404 Not Found si
      */
-    @PreAuthorize("hasRole('CEO')")
+    @PreAuthorize("hasRole('CEO') and @cuentaSecurity.isOwner(authentication, #id)")
     @PatchMapping("/{id}/desactivar")
     public ResponseEntity<Void> desactivar(@PathVariable Integer id) {
         boolean ok = cuentaService.desactivar(id);
@@ -56,8 +80,12 @@ public class CuentaController {
 
     /**
      * Activa una cuenta.
+     * Solo el CEO propietario puede hacerlo.
+     * 
+     * @param id ID de la cuenta a activar.
+     * @return 204 No Content si se activa, 404 Not Found si
      */
-    @PreAuthorize("hasRole('CEO')")
+    @PreAuthorize("hasRole('CEO') and @cuentaSecurity.isOwner(authentication, #id)")
     @PatchMapping("/{id}/activar")
     public ResponseEntity<Void> activar(@PathVariable Integer id) {
         boolean ok = cuentaService.activar(id);
@@ -65,11 +93,15 @@ public class CuentaController {
     }
 
     /**
-     * Lista los movimientos de una cuenta.
+     * Obtiene los movimientos asociados a una cuenta.
+     * Solo el CEO propietario puede verlo.
+     * 
+     * @param id ID de la cuenta.
+     * @return Lista de MovimientoResponseDTO asociados a la cuenta.
      */
-    @PreAuthorize("hasRole('CEO')")
+    @PreAuthorize("hasRole('CEO') and @cuentaSecurity.isOwner(authentication, #id)")
     @GetMapping("/{id}/movimientos")
-    public ResponseEntity<List<com.gestionnegocios.api_gestionnegocios.dto.Movimiento.MovimientoResponseDTO>> getMovimientos(
+    public ResponseEntity<List<MovimientoResponseDTO>> getMovimientos(
             @PathVariable Integer id) {
         return ResponseEntity.ok(cuentaService.getMovimientos(id));
     }
