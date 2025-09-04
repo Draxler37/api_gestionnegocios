@@ -5,13 +5,21 @@ import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Movimiento.MovimientoResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.mapper.CuentaMapper;
 import com.gestionnegocios.api_gestionnegocios.models.Cuenta;
+import com.gestionnegocios.api_gestionnegocios.models.Moneda;
+import com.gestionnegocios.api_gestionnegocios.models.Negocio;
+import com.gestionnegocios.api_gestionnegocios.models.TipoCuenta;
 import com.gestionnegocios.api_gestionnegocios.repository.CuentaRepository;
+import com.gestionnegocios.api_gestionnegocios.repository.MonedaRepository;
+import com.gestionnegocios.api_gestionnegocios.repository.NegocioRepository;
+import com.gestionnegocios.api_gestionnegocios.repository.TipoCuentaRepository;
+import com.gestionnegocios.api_gestionnegocios.security.EncryptionUtil;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,6 +30,10 @@ public class CuentaService {
     private final CuentaRepository cuentaRepository;
     private final CuentaMapper cuentaMapper;
     private final MovimientoService movimientoService;
+    private final EncryptionUtil encryptionUtil;
+    private final NegocioRepository negocioRepository;
+    private final TipoCuentaRepository tipoCuentaRepository;
+    private final MonedaRepository monedaRepository;
 
     /**
      * Obtiene una lista de cuentas filtradas por estado.
@@ -39,12 +51,18 @@ public class CuentaService {
         List<Cuenta> cuentas = cuentaRepository.findByNegocioId(idNegocio);
         return cuentas.stream()
                 .filter(c -> estado == null || c.isEstado() == estado)
-                .map(cuentaMapper::toResponseDTO)
+                .map(c -> {
+                    // Desencripta antes de mapear, para que el mapper + decorator pueda usar el
+                    // numero de cuenta.
+                    String numeroDesencriptado = encryptionUtil.decrypt(c.getNumeroCuenta());
+                    c.setNumeroCuenta(numeroDesencriptado);
+                    return cuentaMapper.toResponseDTO(c);
+                })
                 .collect(Collectors.toList());
     }
 
     /**
-     * Crega una nueva cuenta.
+     * Crea una nueva cuenta. Encripta el número de cuenta antes de guardarla.
      * 
      * @param dto DTO con los datos de la cuenta a crear.
      * @return DTO de la cuenta creada.
@@ -52,7 +70,23 @@ public class CuentaService {
     @Transactional
     public CuentaResponseDTO create(CuentaRequestDTO dto) {
         Cuenta cuenta = cuentaMapper.toEntity(dto);
+
+        Negocio negocio = negocioRepository.findById(dto.getIdNegocio())
+                .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
+        TipoCuenta tipoCuenta = tipoCuentaRepository.findById(dto.getIdTipoCuenta())
+                .orElseThrow(() -> new RuntimeException("Tipo de cuenta no encontrado"));
+        Moneda moneda = monedaRepository.findById(dto.getIdMoneda())
+                .orElseThrow(() -> new RuntimeException("Moneda no encontrada"));
+
+        cuenta.setNegocio(negocio);
+        cuenta.setTipoCuenta(tipoCuenta);
+        cuenta.setMoneda(moneda);
+        cuenta.setBalance(BigDecimal.ZERO);
+
+        cuenta.setNumeroCuenta(encryptionUtil.encrypt(dto.getNumeroCuenta()));
+
         Cuenta saved = cuentaRepository.save(cuenta);
+
         return cuentaMapper.toResponseDTO(saved);
     }
 

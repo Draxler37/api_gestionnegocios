@@ -36,29 +36,6 @@ public class NegocioService {
     private final ConceptoRepository conceptoRepository;
     private final UsuarioMapper usuarioMapper;
 
-    @Transactional
-    public void addEmpleado(Integer idNegocio, Integer idEmpleado) {
-        Negocio negocio = negocioRepository.findById(idNegocio)
-                .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
-        Usuario empleado = usuarioRepository.findById(idEmpleado)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        if (empleado.getRoles() == null
-                || empleado.getRoles().stream().noneMatch(r -> r.getNombre().equals("EMPLEADO"))) {
-            throw new RuntimeException("El usuario no tiene rol EMPLEADO");
-        }
-        negocio.getEmpleados().add(empleado);
-        negocioRepository.save(negocio);
-    }
-
-    public List<UsuarioResponseDTO> getEmpleados(
-            Integer idNegocio) {
-        Negocio negocio = negocioRepository.findById(idNegocio)
-                .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
-        return negocio.getEmpleados().stream()
-                .map(usuarioMapper::toResponseDTO)
-                .collect(java.util.stream.Collectors.toList());
-    }
-
     /**
      * Obtiene una lista de Negocios filtrados por estado.
      * Si el estado es null, devuelve todos los Negocios.
@@ -199,5 +176,40 @@ public class NegocioService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Agrega un empleado a un negocio.
+     * 
+     * @param idNegocio  ID del negocio al que se agrega el empleado.
+     * @param idEmpleado ID del usuario que se agrega como empleado.
+     */
+    @Transactional
+    public void addEmpleado(Integer idNegocio, Integer idEmpleado) {
+        Negocio negocio = negocioRepository.findById(idNegocio)
+                .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
+        Usuario empleado = usuarioRepository.findById(idEmpleado)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        if (empleado.getRoles() == null
+                || empleado.getRoles().stream().noneMatch(r -> r.getNombre().equals("EMPLEADO"))) {
+            throw new RuntimeException("El usuario no tiene rol EMPLEADO");
+        }
+        negocio.getEmpleados().add(empleado);
+        negocioRepository.save(negocio);
+    }
+
+    /**
+     * Obtiene la lista de empleados asociados a un negocio.
+     * 
+     * @param idNegocio ID del negocio.
+     * @return Lista de empleados asociados al negocio.
+     */
+    public List<UsuarioResponseDTO> getEmpleados(
+            Integer idNegocio) {
+        Negocio negocio = negocioRepository.findById(idNegocio)
+                .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
+        return negocio.getEmpleados().stream()
+                .map(usuarioMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 }

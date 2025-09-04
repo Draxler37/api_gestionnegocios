@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controlador para manejar las operaciones relacionadas con las cuentas.
+ * Permite obtener, crear, actualizar, activar y desactivar cuentas.
+ */
 @RestController
 @RequestMapping("/api/cuentas")
 @RequiredArgsConstructor
@@ -24,15 +28,15 @@ public class CuentaController {
      * Obtiene todas las cuentas de un negocio específico.
      * Solo el CEO propietario del negocio puede verlas.
      * 
-     * @param idNegocio ID del negocio para filtrar las cuentas.
-     * @param estado    (Opcional) Filtra por estado (activo/inactivo).
+     * @param id     ID del negocio para filtrar las cuentas.
+     * @param estado (Opcional) Filtra por estado (activo/inactivo).
      * @return Lista de CuentaResponseDTO.
      */
-    @PreAuthorize("(hasRole('CEO') and @negocioSecurity.isOwner(authentication, #idNegocio))")
-    @GetMapping
-    public List<CuentaResponseDTO> getAllByNegocio(@RequestParam Integer idNegocio,
+    @PreAuthorize("(hasRole('CEO') and @negocioSecurity.isOwner(authentication, #id))")
+    @GetMapping("/{id}/negocio")
+    public List<CuentaResponseDTO> getAllByNegocio(@PathVariable Integer id,
             @RequestParam(required = false) Boolean estado) {
-        return cuentaService.getAllByNegocio(idNegocio, estado);
+        return cuentaService.getAllByNegocio(id, estado);
     }
 
     /**

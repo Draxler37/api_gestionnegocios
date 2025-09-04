@@ -47,7 +47,6 @@ public class Cuenta {
     @JoinColumn(name = "id_moneda", nullable = false)
     private Moneda moneda;
 
-    @NotNull
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance;
 

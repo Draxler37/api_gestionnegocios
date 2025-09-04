@@ -2,6 +2,7 @@ package com.gestionnegocios.api_gestionnegocios.mapper;
 
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaResponseDTO;
+import com.gestionnegocios.api_gestionnegocios.mapper.decorator.CuentaMapperDecorator;
 import com.gestionnegocios.api_gestionnegocios.models.Cuenta;
 
 import org.mapstruct.*;
@@ -12,10 +13,13 @@ import org.mapstruct.*;
  * update.
  */
 @Mapper(componentModel = "spring")
+@DecoratedWith(CuentaMapperDecorator.class)
 public interface CuentaMapper {
     @Mapping(target = "idNegocio", source = "negocio.id")
     @Mapping(target = "idTipoCuenta", source = "tipoCuenta.id")
     @Mapping(target = "idMoneda", source = "moneda.id")
+    @Mapping(target = "numeroCuentaParseada", ignore = true)
+    @Mapping(target = "numeroCuentaEncriptada", source = "numeroCuenta")
     CuentaResponseDTO toResponseDTO(Cuenta cuenta);
 
     @Mapping(target = "id", ignore = true)

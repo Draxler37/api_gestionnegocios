@@ -18,4 +18,6 @@ public class CuentaResponseDTO {
     private BigDecimal balance;
     private String descripcion;
     private LocalDateTime fechaCreacion;
+    private String numeroCuentaEncriptada;
+    private String numeroCuentaParseada;
 }
