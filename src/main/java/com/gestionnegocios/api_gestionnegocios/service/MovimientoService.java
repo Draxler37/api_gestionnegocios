@@ -7,11 +7,15 @@ import com.gestionnegocios.api_gestionnegocios.models.Movimiento;
 import com.gestionnegocios.api_gestionnegocios.repository.MovimientoRepository;
 import com.gestionnegocios.api_gestionnegocios.repository.CuentaRepository;
 import com.gestionnegocios.api_gestionnegocios.repository.ConceptoRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,17 +25,54 @@ public class MovimientoService {
         private final CuentaRepository cuentaRepository;
         private final ConceptoRepository conceptoRepository;
 
-        public List<MovimientoResponseDTO> getByCuentaId(Integer cuentaId) {
-                return movimientoRepository.findByCuentaId(cuentaId)
-                                .stream()
+        /**
+         * Obtiene movimientos filtrados SOLO del negocio indicado, para CEO o EMPLEADO.
+         * Solo se debe enviar el filtro más específico: idCuenta o idConcepto. 
+         * El backend resuelve las relaciones y valida pertenencia.
+         *
+         * @param idCuenta    ID de la cuenta (opcional, si se envía, ignora idNegocio)
+         * @param idConcepto  ID del concepto (opcional, si se envía, ignora idNegocio)
+         * @param fechaInicio Fecha de inicio (opcional)
+         * @param fechaFin    Fecha de fin (opcional)
+         * @param montoMaximo Monto máximo (opcional)
+         * @return Lista de MovimientoResponseDTO
+         */
+        public List<MovimientoResponseDTO> getAll(
+                        Integer idCuenta,
+                        Integer idConcepto,
+                        LocalDateTime fechaInicio,
+                        LocalDateTime fechaFin,
+                        Double montoMaximo) {
+                Integer negocioId = null;
+                Integer tipoMovimientoId = null;
+
+                if (idCuenta != null) {
+                        var cuenta = cuentaRepository.findById(idCuenta)
+                                        .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+                        negocioId = cuenta.getNegocio().getId();
+                }
+
+                if (idConcepto != null) {
+                        var concepto = conceptoRepository.findById(idConcepto)
+                                        .orElseThrow(() -> new RuntimeException("Concepto no encontrado"));
+                        negocioId = concepto.getNegocio().getId();
+                        tipoMovimientoId = concepto.getTipoMovimiento().getId();
+                }
+
+                if (negocioId == null) {
+                        throw new RuntimeException("Debe especificar idCuenta o idConcepto");
+                }
+
+                return movimientoRepository.findByFilters(
+                                idCuenta,
+                                idConcepto,
+                                tipoMovimientoId,
+                                negocioId,
+                                fechaInicio,
+                                fechaFin,
+                                montoMaximo).stream()
                                 .map(movimientoMapper::toResponseDTO)
                                 .collect(Collectors.toList());
-        }
-
-        public MovimientoResponseDTO getById(Integer id) {
-                return movimientoRepository.findById(id)
-                                .map(movimientoMapper::toResponseDTO)
-                                .orElseThrow(() -> new RuntimeException("Movimiento no encontrado"));
         }
 
         @Transactional

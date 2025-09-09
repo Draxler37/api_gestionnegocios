@@ -4,14 +4,12 @@ import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Movimiento.MovimientoResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.mapper.CuentaMapper;
+import com.gestionnegocios.api_gestionnegocios.mapper.MovimientoMapper;
 import com.gestionnegocios.api_gestionnegocios.models.Cuenta;
 import com.gestionnegocios.api_gestionnegocios.models.Moneda;
 import com.gestionnegocios.api_gestionnegocios.models.Negocio;
 import com.gestionnegocios.api_gestionnegocios.models.TipoCuenta;
-import com.gestionnegocios.api_gestionnegocios.repository.CuentaRepository;
-import com.gestionnegocios.api_gestionnegocios.repository.MonedaRepository;
-import com.gestionnegocios.api_gestionnegocios.repository.NegocioRepository;
-import com.gestionnegocios.api_gestionnegocios.repository.TipoCuentaRepository;
+import com.gestionnegocios.api_gestionnegocios.repository.*;
 import com.gestionnegocios.api_gestionnegocios.security.EncryptionUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -27,13 +25,15 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CuentaService {
+
+    private final MovimientoRepository movimientoRepository;
     private final CuentaRepository cuentaRepository;
     private final CuentaMapper cuentaMapper;
-    private final MovimientoService movimientoService;
     private final EncryptionUtil encryptionUtil;
     private final NegocioRepository negocioRepository;
     private final TipoCuentaRepository tipoCuentaRepository;
     private final MonedaRepository monedaRepository;
+    private final MovimientoMapper movimientoMapper;
 
     /**
      * Obtiene una lista de cuentas filtradas por estado.
@@ -44,20 +44,11 @@ public class CuentaService {
      * @param estado Estado de la cuenta (null, true o false).
      * @return Lista de cuentas filtradas.
      */
-    /**
-     * Obtiene todas las cuentas de un negocio, filtrando por estado si se indica.
-     */
     public List<CuentaResponseDTO> getAllByNegocio(Integer idNegocio, Boolean estado) {
         List<Cuenta> cuentas = cuentaRepository.findByNegocioId(idNegocio);
         return cuentas.stream()
                 .filter(c -> estado == null || c.isEstado() == estado)
-                .map(c -> {
-                    // Desencripta antes de mapear, para que el mapper + decorator pueda usar el
-                    // numero de cuenta.
-                    String numeroDesencriptado = encryptionUtil.decrypt(c.getNumeroCuenta());
-                    c.setNumeroCuenta(numeroDesencriptado);
-                    return cuentaMapper.toResponseDTO(c);
-                })
+                .map(cuentaMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -142,8 +133,13 @@ public class CuentaService {
      * @param idCuenta ID de la cuenta cuyos movimientos se desean listar.
      * @return Lista de movimientos de la cuenta.
      */
-    public List<MovimientoResponseDTO> getMovimientos(
-            Integer idCuenta) {
-        return movimientoService.getByCuentaId(idCuenta);
+    public List<MovimientoResponseDTO> getMovimientos(Integer idCuenta) {
+        // Verifica que la cuenta exista
+        if (!cuentaRepository.existsById(idCuenta)) {
+            throw new RuntimeException("Cuenta no encontrada");
+        }
+        return movimientoRepository.findByCuentaId(idCuenta).stream()
+                .map(movimientoMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 }

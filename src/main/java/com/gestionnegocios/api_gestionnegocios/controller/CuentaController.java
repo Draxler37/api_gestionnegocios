@@ -76,7 +76,7 @@ public class CuentaController {
      * @return 204 No Content si se desactiva, 404 Not Found si
      */
     @PreAuthorize("hasRole('CEO') and @cuentaSecurity.isOwner(authentication, #id)")
-    @PatchMapping("/{id}/desactivar")
+    @PatchMapping("/{id}/deactivate")
     public ResponseEntity<Void> desactivar(@PathVariable Integer id) {
         boolean ok = cuentaService.desactivar(id);
         return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
@@ -90,7 +90,7 @@ public class CuentaController {
      * @return 204 No Content si se activa, 404 Not Found si
      */
     @PreAuthorize("hasRole('CEO') and @cuentaSecurity.isOwner(authentication, #id)")
-    @PatchMapping("/{id}/activar")
+    @PatchMapping("/{id}/activate")
     public ResponseEntity<Void> activar(@PathVariable Integer id) {
         boolean ok = cuentaService.activar(id);
         return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();

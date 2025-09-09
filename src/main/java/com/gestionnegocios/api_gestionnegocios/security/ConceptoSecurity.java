@@ -9,15 +9,16 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Componente de seguridad para verificar la propiedad de un Concepto.
- * Permite verificar si el usuario autenticado es el propietario del Negocio
- * asociado al Concepto especificado.
+ * Permite verificar si el usuario autenticado es empleado o propietario del
+ * Negocio asociado al Concepto especificado.
  */
 @Component("conceptoSecurity")
 @RequiredArgsConstructor
 public class ConceptoSecurity {
+    private final ConceptoRepository conceptoRepository;
+
     /**
-     * Verifica si el usuario autenticado es empleado del Negocio asociado al
-     * Concepto especificado.
+     * Verifica si el usuario autenticado es empleado del Negocio especificado.
      * 
      * @param authentication Objeto de autenticación que contiene la información del
      *                       usuario autenticado.
@@ -36,8 +37,6 @@ public class ConceptoSecurity {
                     return false;
                 }).orElse(false);
     }
-
-    private final ConceptoRepository conceptoRepository;
 
     /**
      * Verifica si el usuario autenticado es el propietario del Negocio asociado al

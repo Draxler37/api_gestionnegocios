@@ -14,4 +14,13 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Integer>
     List<Movimiento> findByCuentaId(Integer cuentaId);
 
     boolean existsByConceptoId(Integer conceptoId);
+
+    List<Movimiento> findByFilters(
+            Integer idCuenta,
+            Integer idConcepto,
+            Integer idTipoMovimiento,
+            Integer idNegocio,
+            java.time.LocalDateTime fechaInicio,
+            java.time.LocalDateTime fechaFin,
+            Double montoMaximo);
 }
