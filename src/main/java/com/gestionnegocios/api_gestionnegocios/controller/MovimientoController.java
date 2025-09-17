@@ -6,11 +6,13 @@ import com.gestionnegocios.api_gestionnegocios.service.MovimientoService;
 
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +23,7 @@ public class MovimientoController {
     private final MovimientoService movimientoService;
 
     /**
-     * Solo CEO dueño o EMPLEADO del negocio pueden ver movimientos de ese negocio.
+     * Solo CEO dueño del negocio pueden ver movimientos de ese negocio.
      * Se debe enviar solo uno de los siguientes filtros (en orden de prioridad):
      * - idCuenta: filtra movimientos de una cuenta específica (y resuelve el
      * negocio automáticamente)
@@ -35,14 +37,14 @@ public class MovimientoController {
      * @param montoMaximo Monto máximo para filtrar los movimientos (opcional)
      * @return Lista de MovimientoResponseDTO
      */
-    @PreAuthorize("@movimientoSecurity.isCeoOwnerOrEmpleado(authentication, #idCuenta, #idConcepto)")
+    @PreAuthorize("hasRole('CEO') and (@movimientoSecurity.isCeoOwnerByCuenta(authentication, #idCuenta) or @movimientoSecurity.isCeoOwnerByConcepto(authentication, #idConcepto))")
     @GetMapping
     public ResponseEntity<List<MovimientoResponseDTO>> getAll(
-            @RequestParam(required = false) Integer idCuenta,
-            @RequestParam(required = true) Integer idConcepto,
-            @RequestParam(required = false) LocalDateTime fechaInicio,
-            @RequestParam(required = false) LocalDateTime fechaFin,
-            @RequestParam(required = false) Double montoMaximo) {
+            @RequestParam(name = "idCuenta", required = true) Integer idCuenta,
+            @RequestParam(name = "idConcepto", required = true) Integer idConcepto,
+            @RequestParam(name = "fechaInicio", required = false) LocalDateTime fechaInicio,
+            @RequestParam(name = "fechaFin", required = false) LocalDateTime fechaFin,
+            @RequestParam(name = "montoMaximo", required = false) BigDecimal montoMaximo) {
         return ResponseEntity.ok(movimientoService.getAll(
                 idCuenta,
                 idConcepto,
@@ -51,12 +53,14 @@ public class MovimientoController {
                 montoMaximo));
     }
 
-    @PostMapping
-    public ResponseEntity<MovimientoResponseDTO> create(@Validated @RequestBody MovimientoRequestDTO dto) {
-        return ResponseEntity.ok(movimientoService.create(dto));
+    @PreAuthorize("hasRole('CEO')")
+    @PostMapping("/add")
+    public ResponseEntity<MovimientoResponseDTO> create(@AuthenticationPrincipal String email,
+            @Validated @RequestBody MovimientoRequestDTO dto) {
+        return ResponseEntity.ok(movimientoService.create(email, dto));
     }
 
-    @PreAuthorize("hasRole('CEO')")
+    @PreAuthorize("hasRole('CEO') and @movimientoSecurity.isCeoOwnerByMovimiento(authentication, #id)")
     @PutMapping("/{id}")
     public ResponseEntity<MovimientoResponseDTO> update(@PathVariable Integer id,
             @Validated @RequestBody MovimientoRequestDTO dto) {

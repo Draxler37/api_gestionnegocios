@@ -27,10 +27,10 @@ public class CuentaSecurity {
      *         caso contrario.
      */
     public boolean isOwner(Authentication auth, Integer cuentaId) {
-        String email = auth.getName();
         return cuentaRepository.findById(cuentaId)
                 .map(cuenta -> cuenta.getNegocio() != null && cuenta.getNegocio().getUsuario() != null
-                        && cuenta.getNegocio().getUsuario().getEmail().equals(email))
+                        && cuenta.getNegocio().getUsuario().getEmail().equals(auth
+                                .getName()))
                 .orElse(false);
     }
 }

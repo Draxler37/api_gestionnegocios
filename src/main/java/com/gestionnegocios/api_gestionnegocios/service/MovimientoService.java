@@ -3,13 +3,17 @@ package com.gestionnegocios.api_gestionnegocios.service;
 import com.gestionnegocios.api_gestionnegocios.dto.Movimiento.MovimientoRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Movimiento.MovimientoResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.mapper.MovimientoMapper;
+import com.gestionnegocios.api_gestionnegocios.models.Concepto;
+import com.gestionnegocios.api_gestionnegocios.models.Cuenta;
 import com.gestionnegocios.api_gestionnegocios.models.Movimiento;
+import com.gestionnegocios.api_gestionnegocios.models.TipoMovimiento;
 import com.gestionnegocios.api_gestionnegocios.repository.MovimientoRepository;
 import com.gestionnegocios.api_gestionnegocios.repository.CuentaRepository;
 import com.gestionnegocios.api_gestionnegocios.repository.ConceptoRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,48 +30,33 @@ public class MovimientoService {
         private final ConceptoRepository conceptoRepository;
 
         /**
-         * Obtiene movimientos filtrados SOLO del negocio indicado, para CEO o EMPLEADO.
-         * Solo se debe enviar el filtro más específico: idCuenta o idConcepto. 
-         * El backend resuelve las relaciones y valida pertenencia.
-         *
-         * @param idCuenta    ID de la cuenta (opcional, si se envía, ignora idNegocio)
-         * @param idConcepto  ID del concepto (opcional, si se envía, ignora idNegocio)
-         * @param fechaInicio Fecha de inicio (opcional)
-         * @param fechaFin    Fecha de fin (opcional)
-         * @param montoMaximo Monto máximo (opcional)
+         * Obtiene una lista de movimientos filtrados por los parámetros proporcionados.
+         * 
+         * @param idCuenta    ID de la cuenta para filtrar los movimientos
+         * @param idConcepto  ID del concepto para filtrar los movimientos
+         * @param fechaInicio Fecha de inicio para filtrar los movimientos (opcional)
+         * @param fechaFin    Fecha de fin para filtrar los movimientos (opcional)
+         * @param montoMaximo Monto máximo para filtrar los movimientos (opcional)
          * @return Lista de MovimientoResponseDTO
          */
+        @Transactional(readOnly = true)
         public List<MovimientoResponseDTO> getAll(
                         Integer idCuenta,
                         Integer idConcepto,
                         LocalDateTime fechaInicio,
                         LocalDateTime fechaFin,
-                        Double montoMaximo) {
-                Integer negocioId = null;
-                Integer tipoMovimientoId = null;
+                        BigDecimal montoMaximo) {
 
-                if (idCuenta != null) {
-                        var cuenta = cuentaRepository.findById(idCuenta)
-                                        .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
-                        negocioId = cuenta.getNegocio().getId();
+                if (!cuentaRepository.existsById(idCuenta)) {
+                        throw new RuntimeException("Cuenta no encontrada");
                 }
-
-                if (idConcepto != null) {
-                        var concepto = conceptoRepository.findById(idConcepto)
-                                        .orElseThrow(() -> new RuntimeException("Concepto no encontrado"));
-                        negocioId = concepto.getNegocio().getId();
-                        tipoMovimientoId = concepto.getTipoMovimiento().getId();
-                }
-
-                if (negocioId == null) {
-                        throw new RuntimeException("Debe especificar idCuenta o idConcepto");
+                if (!conceptoRepository.existsById(idConcepto)) {
+                        throw new RuntimeException("Concepto no encontrada");
                 }
 
                 return movimientoRepository.findByFilters(
                                 idCuenta,
                                 idConcepto,
-                                tipoMovimientoId,
-                                negocioId,
                                 fechaInicio,
                                 fechaFin,
                                 montoMaximo).stream()
@@ -76,12 +65,39 @@ public class MovimientoService {
         }
 
         @Transactional
-        public MovimientoResponseDTO create(MovimientoRequestDTO dto) {
+        public MovimientoResponseDTO create(String email, MovimientoRequestDTO dto) {
+                Cuenta cuenta = cuentaRepository.findById(dto.getIdCuenta())
+                                .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+
+                if(!cuenta.getNegocio().getUsuario().getEmail().equals(email)){
+                        throw new RuntimeException("No tienes permisos para crear movimientos en esta cuenta");
+                }
+
+                // Obtener el concepto y el tipo de movimiento
+                Concepto concepto = conceptoRepository.findById(dto.getIdConcepto())
+                                .orElseThrow(() -> new RuntimeException("Concepto no encontrado"));
+
+                TipoMovimiento tipoMovimiento = concepto.getTipoMovimiento();
+                if (tipoMovimiento == null || tipoMovimiento.getNombre() == null) {
+                        throw new RuntimeException("Tipo de movimiento no definido en el concepto");
+                }
+
+                // Actualizar el balance de la cuenta según el tipo de movimiento
+                BigDecimal monto = dto.getMonto();
+                String tipo = tipoMovimiento.getNombre().toUpperCase();
+                if ("DEBITO".equals(tipo)) {
+                        cuenta.setBalance(cuenta.getBalance().subtract(monto));
+                } else if ("CREDITO".equals(tipo)) {
+                        cuenta.setBalance(cuenta.getBalance().add(monto));
+                } else {
+                        throw new RuntimeException("Tipo de movimiento no soportado: " + tipo);
+                }
+                cuentaRepository.save(cuenta);
+
                 Movimiento movimiento = movimientoMapper.toEntity(dto);
-                movimiento.setCuenta(cuentaRepository.findById(dto.getIdCuenta())
-                                .orElseThrow(() -> new RuntimeException("Cuenta no encontrada")));
-                movimiento.setConcepto(conceptoRepository.findById(dto.getIdConcepto())
-                                .orElseThrow(() -> new RuntimeException("Concepto no encontrado")));
+                movimiento.setCuenta(cuenta);
+                movimiento.setConcepto(concepto);
+
                 return movimientoMapper.toResponseDTO(movimientoRepository.save(movimiento));
         }
 
@@ -90,7 +106,7 @@ public class MovimientoService {
                 Movimiento movimiento = movimientoRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Movimiento no encontrado"));
                 movimientoMapper.updateEntityFromDto(dto, movimiento);
-                // No se permite cambiar cuenta, tipoMovimiento ni concepto desde el update
+
                 movimiento.setDescripcion(dto.getDescripcion());
                 movimiento.setMonto(dto.getMonto());
                 return movimientoMapper.toResponseDTO(movimientoRepository.save(movimiento));

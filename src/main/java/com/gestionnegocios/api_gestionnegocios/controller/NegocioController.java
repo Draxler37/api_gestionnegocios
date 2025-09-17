@@ -38,6 +38,8 @@ public class NegocioController {
     /**
      * Obtiene todos los Negocios activos e inactivos según el estado.
      *
+     * @param estado Estado del negocio (null, true o false).
+     * @param email  Email del usuario propietario de los negocios.
      * @return Lista de Negocios activos e inactivos según el estado.
      */
     @PreAuthorize("hasRole('CEO')")
@@ -51,6 +53,7 @@ public class NegocioController {
     /**
      * Agrega un nuevo Negocio.
      *
+     * @param email         Email del usuario propietario del negocio.
      * @param negocioRequest Datos del Negocio a agregar.
      * @return Negocio creado con estado 201 Created.
      */
