@@ -66,4 +66,18 @@ public class MovimientoController {
             @Validated @RequestBody MovimientoRequestDTO dto) {
         return ResponseEntity.ok(movimientoService.update(id, dto));
     }
+
+    /**
+     * Obtiene los movimientos asociados a una cuenta.
+     * Solo el CEO propietario puede verlo.
+     * 
+     * @param id ID de la cuenta.
+     * @return Lista de MovimientoResponseDTO asociados a la cuenta.
+     */
+    @PreAuthorize("hasRole('CEO') and @cuentaSecurity.isOwner(authentication, #id)")
+    @GetMapping("/{id}/movimientos")
+    public ResponseEntity<List<MovimientoResponseDTO>> getMovimientos(
+            @PathVariable Integer id) {
+        return ResponseEntity.ok(movimientoService.getMovimientos(id));
+    }
 }

@@ -111,4 +111,20 @@ public class MovimientoService {
                 movimiento.setMonto(dto.getMonto());
                 return movimientoMapper.toResponseDTO(movimientoRepository.save(movimiento));
         }
+
+        /**
+         * Lista los movimientos de una cuenta.
+         *
+         * @param idCuenta ID de la cuenta cuyos movimientos se desean listar.
+         * @return Lista de movimientos de la cuenta.
+         */
+        public List<MovimientoResponseDTO> getMovimientos(Integer idCuenta) {
+                // Verifica que la cuenta exista
+                if (!cuentaRepository.existsById(idCuenta)) {
+                        throw new RuntimeException("Cuenta no encontrada");
+                }
+                return movimientoRepository.findByCuentaId(idCuenta).stream()
+                                .map(movimientoMapper::toResponseDTO)
+                                .collect(Collectors.toList());
+        }
 }

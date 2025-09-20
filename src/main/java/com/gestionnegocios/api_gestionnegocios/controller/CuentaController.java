@@ -2,7 +2,6 @@ package com.gestionnegocios.api_gestionnegocios.controller;
 
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaResponseDTO;
-import com.gestionnegocios.api_gestionnegocios.dto.Movimiento.MovimientoResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.service.CuentaService;
 
 import lombok.RequiredArgsConstructor;
@@ -94,19 +93,5 @@ public class CuentaController {
     public ResponseEntity<Void> activar(@PathVariable Integer id) {
         boolean ok = cuentaService.activar(id);
         return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
-    }
-
-    /**
-     * Obtiene los movimientos asociados a una cuenta.
-     * Solo el CEO propietario puede verlo.
-     * 
-     * @param id ID de la cuenta.
-     * @return Lista de MovimientoResponseDTO asociados a la cuenta.
-     */
-    @PreAuthorize("hasRole('CEO') and @cuentaSecurity.isOwner(authentication, #id)")
-    @GetMapping("/{id}/movimientos")
-    public ResponseEntity<List<MovimientoResponseDTO>> getMovimientos(
-            @PathVariable Integer id) {
-        return ResponseEntity.ok(cuentaService.getMovimientos(id));
     }
 }

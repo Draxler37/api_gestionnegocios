@@ -2,9 +2,7 @@ package com.gestionnegocios.api_gestionnegocios.service;
 
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaRequestDTO;
 import com.gestionnegocios.api_gestionnegocios.dto.Cuenta.CuentaResponseDTO;
-import com.gestionnegocios.api_gestionnegocios.dto.Movimiento.MovimientoResponseDTO;
 import com.gestionnegocios.api_gestionnegocios.mapper.CuentaMapper;
-import com.gestionnegocios.api_gestionnegocios.mapper.MovimientoMapper;
 import com.gestionnegocios.api_gestionnegocios.models.Cuenta;
 import com.gestionnegocios.api_gestionnegocios.models.Moneda;
 import com.gestionnegocios.api_gestionnegocios.models.Negocio;
@@ -26,14 +24,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CuentaService {
 
-    private final MovimientoRepository movimientoRepository;
     private final CuentaRepository cuentaRepository;
     private final CuentaMapper cuentaMapper;
     private final EncryptionUtil encryptionUtil;
     private final NegocioRepository negocioRepository;
     private final TipoCuentaRepository tipoCuentaRepository;
     private final MonedaRepository monedaRepository;
-    private final MovimientoMapper movimientoMapper;
 
     /**
      * Obtiene una lista de cuentas filtradas por estado.
@@ -125,21 +121,5 @@ public class CuentaService {
             cuentaRepository.save(cuenta);
             return true;
         }).orElse(false);
-    }
-
-    /**
-     * Lista los movimientos de una cuenta.
-     *
-     * @param idCuenta ID de la cuenta cuyos movimientos se desean listar.
-     * @return Lista de movimientos de la cuenta.
-     */
-    public List<MovimientoResponseDTO> getMovimientos(Integer idCuenta) {
-        // Verifica que la cuenta exista
-        if (!cuentaRepository.existsById(idCuenta)) {
-            throw new RuntimeException("Cuenta no encontrada");
-        }
-        return movimientoRepository.findByCuentaId(idCuenta).stream()
-                .map(movimientoMapper::toResponseDTO)
-                .collect(Collectors.toList());
     }
 }
